@@ -65,13 +65,10 @@ const TasksPage = () => {
   };
 
   useEffect(() => {
-    updateTasks(); // Run on initial render
-  }, [token]);
-
-  // Re-run updateTasks when any of the filter/search values change
-  useEffect(() => {
-    updateTasks();
-  }, [searchTerm, priorityFilter, statusFilter, sortBy, sortOrder]);
+    if (token) {
+      updateTasks(); // Run on initial render
+    }
+  }, [token, searchTerm, priorityFilter, statusFilter, sortBy, sortOrder]);
 
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
@@ -105,7 +102,8 @@ const TasksPage = () => {
   };
 
   const handleCloseModal = () => {
-    setShowModal(false);
+    setShowModal(false); //close edit modalmodal
+    setShowAddTaskModal(false);
     setSelectedTask(null);
     setTaskName("");
     setDescription("");
@@ -183,6 +181,25 @@ const TasksPage = () => {
   };
 
   const handleAddTask = async () => {
+    if (!taskName) {
+      alert("Please add Task Name!");
+      return;
+    } else if (!startDate) {
+      alert("Please select Start Date!");
+      return;
+    } else if (!endDate) {
+      alert("Please select End Date!");
+      return;
+    } else if (startDate.getTime() === endDate.getTime()) {
+      alert("Start Date and End Date can not be the same!");
+      return;
+    } else if (!priority) {
+      alert("Please select a priority!");
+      return;
+    } else if (!status) {
+      alert("Please select a status!");
+      return;
+    }
     try {
       const newTask = {
         taskName,
@@ -192,13 +209,17 @@ const TasksPage = () => {
         priority,
         status,
       };
+      console.log(`newTask: ${newTask}`);
+      console.log("Task Name:", newTask.taskName);
+      console.log("Description:", newTask.description);
+      console.log("Start Date:", newTask.startDate);
+      console.log("End Date:", newTask.endDate);
+      console.log("Priority:", newTask.priority);
+      console.log("Status:", newTask.status);
 
       await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/tasks`, newTask, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      // Refresh tasks after adding
-      updateTasks();
 
       setShowAddTaskModal(false); // Close modal after adding
       // Clear input fields
@@ -208,6 +229,8 @@ const TasksPage = () => {
       setEndDate(null);
       setPriority("");
       setStatus("");
+      // Refresh tasks after adding
+      updateTasks();
     } catch (error) {
       console.error("Error adding task:", error);
     }
@@ -247,7 +270,7 @@ const TasksPage = () => {
             value={priorityFilter}
             onChange={(e) => handleFilterChange("priority", e.target.value)}
           >
-            <option value="">Filter by Priority</option>
+            <option value="">All Priority</option>
             <option value="High">High</option>
             <option value="Medium">Medium</option>
             <option value="Low">Low</option>
@@ -258,8 +281,8 @@ const TasksPage = () => {
             value={statusFilter}
             onChange={(e) => handleFilterChange("status", e.target.value)}
           >
-            <option value="">Filter by Status</option>
-            <option value="Open">Open</option>
+            <option value="">All Status</option>
+            <option value="Todo">Todo</option>
             <option value="In Progress">In Progress</option>
             <option value="Completed">Completed</option>
             <option value="Expired">Expired</option>
@@ -323,7 +346,7 @@ const TasksPage = () => {
       </Row>
 
       {/* Add Task Modal */}
-      <Modal show={showAddTaskModal} onHide={() => setShowAddTaskModal(false)}>
+      <Modal show={showAddTaskModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
           <Modal.Title>Add New Task</Modal.Title>
         </Modal.Header>
@@ -374,6 +397,7 @@ const TasksPage = () => {
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
               >
+                <option value="">Select Priority</option>
                 <option value="High">High</option>
                 <option value="Medium">Medium</option>
                 <option value="Low">Low</option>
@@ -386,7 +410,8 @@ const TasksPage = () => {
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
               >
-                <option value="Open">Open</option>
+                <option value="">Select Status</option>
+                <option value="Todo">Todo</option>
                 <option value="In Progress">In Progress</option>
                 <option value="Completed">Completed</option>
                 <option value="Expired">Expired</option>
@@ -395,10 +420,7 @@ const TasksPage = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={() => setShowAddTaskModal(false)}
-          >
+          <Button variant="secondary" onClick={handleCloseModal}>
             Close
           </Button>
           <Button variant="success" onClick={handleAddTask}>

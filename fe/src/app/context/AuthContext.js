@@ -16,11 +16,27 @@ export const AuthProvider = ({ children }) => {
     if (storedToken) {
       setToken(storedToken);
       axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+    }
+    if (token) {
+      console.log(`token: `, token);
       fetchProfile();
     }
-  }, []);
+  }, [token]);
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      console.log(`user: `, user?.username);
+    }
+  }, [user]);
 
   const fetchProfile = async () => {
+    // const storedToken = localStorage.getItem("token");
+    // if (!storedToken) {
+    //   router.push("../login");
+    //   return;
+    // } else {
+    //   setToken(storedToken);
+    // }
     try {
       console.log(`${process.env.NEXT_PUBLIC_API_URL}/user/profile`);
       const res = await axios.get(
@@ -29,14 +45,21 @@ export const AuthProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log(res);
-      setUser(res.data);
+      console.log("res.data:", res.data);
+      setUser((prev) => ({
+        ...prev,
+        ...res.data, // Cập nhật dữ liệu user state
+      }));
+      localStorage.setItem("user", user);
     } catch (error) {
       console.error("Profile fetch error:", error);
     }
   };
 
   const login = async (email, password) => {
+    // if (user) {
+    //   router.push("../profile");
+    // }
     try {
       console.log(`${process.env.NEXT_PUBLIC_API_URL}/user/login`);
       const res = await axios.post(
@@ -50,10 +73,11 @@ export const AuthProvider = ({ children }) => {
       //console.log(`token: ${receivedToken}`);
       localStorage.setItem("token", receivedToken);
       setToken(receivedToken);
+
       axios.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${receivedToken}`;
-      fetchProfile(receivedToken);
+      fetchProfile();
       router.push("../profile");
     } catch (error) {
       console.error("Login error:", error);
@@ -62,6 +86,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setToken(null);
     setUser(null);
     delete axios.defaults.headers.common["Authorization"];
@@ -85,7 +110,7 @@ export const AuthProvider = ({ children }) => {
         ...res.data, // Cập nhật dữ liệu user state
       }));
 
-      fetchProfile(token);
+      fetchProfile();
     } catch (error) {
       console.error("Update user error:", error);
     }

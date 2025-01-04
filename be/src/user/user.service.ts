@@ -27,6 +27,48 @@ export class UserService {
     }
   }
 
+  // Đăng nhập bằng Google
+  async loginWithGoogle(googleIdToken: string) {
+    try {
+      // Xác thực Google ID Token với Firebase
+      const decodedToken = await firebaseAdmin
+        .auth()
+        .verifyIdToken(googleIdToken);
+
+      // Kiểm tra xem người dùng đã tồn tại hay chưa
+      let userRecord;
+      try {
+        userRecord = await firebaseAdmin.auth().getUser(decodedToken.uid);
+      } catch (error) {
+        // Nếu người dùng chưa tồn tại, tạo tài khoản mới
+        userRecord = await firebaseAdmin.auth().createUser({
+          uid: decodedToken.uid,
+          displayName: decodedToken.name || 'Anonymous',
+          email: decodedToken.email,
+          photoURL: decodedToken.picture,
+        });
+      }
+
+      // Tạo Firebase custom token để đăng nhập
+      const customToken = await firebaseAdmin
+        .auth()
+        .createCustomToken(userRecord.uid);
+
+      return {
+        message: 'Login successful',
+        customToken,
+        user: {
+          email: userRecord.email,
+          displayName: userRecord.displayName,
+          photoURL: userRecord.photoURL,
+        },
+      };
+    } catch (error) {
+      console.error('Error during Google login:', error.message);
+      throw new HttpException('Google login failed', HttpStatus.UNAUTHORIZED);
+    }
+  }
+
   //login with Email and Password
   async loginUser(payload: LoginDto) {
     const { email, password } = payload;

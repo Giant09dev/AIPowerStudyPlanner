@@ -25,8 +25,8 @@ export default function ContentLayout({ children }) {
             <Nav.Link as={Link} href="/tasks">
               Tasks
             </Nav.Link>
-            <Nav.Link as={Link} href="/schedule">
-              {/* <Nav.Link as={Link} href="/tasks"> */}
+            {/* <Nav.Link as={Link} href="/schedule"> */}
+            <Nav.Link as={Link} href="/taskandschedule">
               Schedule
             </Nav.Link>
           </Nav>

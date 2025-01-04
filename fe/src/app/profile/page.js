@@ -8,15 +8,8 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useEffect } from "react";
 
 export default function Profile() {
-  const { user, updateUser, logout, token } = useAuth();
-  const router = useRouter();
-
-  // Redirect về trang login nếu không có token
-  useEffect(() => {
-    if (!token) {
-      router.push("/login");
-    }
-  }, [token]); // Chạy lại khi token thay đổi
+  const { user, updateUser, logout } = useAuth();
+  // const router = useRouter();
 
   // React Hook Form Setup
   const {

@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useAuth } from "@/app/context/AuthContext";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { Button, Modal } from "react-bootstrap";
+import axios from "axios";
 
 const EventModal = ({ isOpen, event, onClose, onSave, onDelete }) => {
   if (!isOpen) return null;
@@ -82,19 +84,8 @@ const EventModal = ({ isOpen, event, onClose, onSave, onDelete }) => {
 
 const apiData = [
   {
-    _id: "676136e165b585ba589c169f",
-    taskName: "Complete NestJS APIIII",
-    description: "Build a RESTful API for task management",
-    status: "Todo",
-    startDate: "2024-06-20T09:00:00.000+00:00",
-    endDate: "2024-06-25T18:00:00.000+00:00",
-    priority: "High",
-    uid: "BUUJ5YDm7OUZuHhbPSimLxwtAVY2",
-    __v: 0,
-  },
-  {
-    _id: "676136e165b585ba589c169f",
-    taskName: "Complete NestJS APIIII",
+    _id: "1",
+    taskName: "Complete NestJS AP",
     description: "Build a RESTful API for task management",
     status: "Todo",
     startDate: "2025-01-02T09:00:00.000+00:00",
@@ -103,33 +94,73 @@ const apiData = [
     uid: "BUUJ5YDm7OUZuHhbPSimLxwtAVY2",
     __v: 0,
   },
+  {
+    _id: "2",
+    taskName: "Complete NestJS APIIII",
+    description: "Build a RESTful API for task management",
+    status: "Todo",
+    startDate: "2025-01-02T08:00:00.000+00:00",
+    endDate: "2025-01-02T18:00:00.000+00:00",
+    priority: "High",
+    uid: "BUUJ5YDm7OUZuHhbPSimLxwtAVY2",
+    __v: 0,
+  },
+  {
+    _id: "3",
+    taskName: "Complete NestJS APIIII",
+    description: "Build a RESTful API for task management",
+    status: "Todo",
+    startDate: "2025-01-02T08:00:00.000+00:00",
+    endDate: "2025-01-02T18:00:00.000+00:00",
+    priority: "High",
+    uid: "BUUJ5YDm7OUZuHhbPSimLxwtAVY2",
+    __v: 0,
+  },
+  {
+    _id: "4",
+    taskName: "Complete NestJS APIIII",
+    description: "Build a RESTful API for task management",
+    status: "Todo",
+    startDate: "2025-01-02T08:00:00.000+00:00",
+    endDate: "2025-01-02T18:00:00.000+00:00",
+    priority: "High",
+    uid: "BUUJ5YDm7OUZuHhbPSimLxwtAVY2",
+    __v: 0,
+  },
 ];
 
 const FullCalendarView = () => {
+  const { token } = useAuth();
   const [events, setEvents] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
   // Hàm lấy dữ liệu sự kiện từ API
-  // const fetchEvents = async () => {
-  //   try {
-  //     const response = await axios.get("/api/events"); // Gọi API
-  //     setEvents(response.data); // Cập nhật dữ liệu sự kiện vào state
-  //   } catch (error) {
-  //     console.error("Error fetching events:", error);
-  //   }
-  // };
   const fetchEvents = async () => {
     try {
-      console.log(`apiData: ${apiData[0]._id}`);
-      const response = apiData.map(transformEventData);
-      console.log(`response: ${response[0].start}`);
-      setEvents(response); // Cập nhật dữ liệu sự kiện vào state
-      console.log(`events: ${events}`);
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/tasks`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      ); // Gọi API
+      const data = response.data.map(transformEventData);
+      setEvents(data); // Cập nhật dữ liệu sự kiện vào state
     } catch (error) {
       console.error("Error fetching events:", error);
     }
   };
+  // const fetchEvents = async () => {
+  //   try {
+  //     console.log(`apiData: ${apiData[0]._id}`);
+  //     const response = apiData.map(transformEventData);
+  //     console.log(`response: ${response[0].start}`);
+  //     setEvents(response); // Cập nhật dữ liệu sự kiện vào state
+  //     console.log(`events: ${events}`);
+  //   } catch (error) {
+  //     console.error("Error fetching events:", error);
+  //   }
+  // };
 
   // Gọi API khi component mount
   useEffect(() => {
@@ -147,6 +178,7 @@ const FullCalendarView = () => {
       end: new Date(data.endDate).toISOString(), // Chuyển endDate thành ISO String
       description: data.description, // Mô tả sự kiện
       priority: data.priority, // Mức độ ưu tiên
+      status: data.status,
     };
   };
 
@@ -228,7 +260,7 @@ const FullCalendarView = () => {
         editable={true}
         selectable={true}
         events={events}
-        timezone="UTC"
+        timeZone="UTC"
         select={handleDateSelect}
         eventClick={handleEventClick}
         eventDrop={handleEventDrop}
@@ -237,6 +269,14 @@ const FullCalendarView = () => {
           center: "title",
           right: "dayGridMonth,timeGridWeek,timeGridDay",
         }}
+        eventContent={(arg) => (
+          <div>
+            <b>{arg.timeText}</b>
+            <i>{arg.event.title}</i>
+            <p>{arg.event.extendedProps.description}</p>
+            <small>Priority: {arg.event.extendedProps.priority}</small>
+          </div>
+        )}
       />
 
       <EventModal
