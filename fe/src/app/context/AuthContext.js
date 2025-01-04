@@ -3,6 +3,12 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { useRouter } from "next/navigation"; // Updated for Next.js 14
 import axios from "axios";
+import {
+  getAuth,
+  signInWithCredential,
+  GoogleAuthProvider,
+} from "firebase/auth";
+import { auth, app } from "@/app/components/firebase"; // Đường dẫn tới file firebase.js
 
 const AuthContext = createContext();
 
@@ -84,6 +90,36 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async (googleIdToken) => {
+    try {
+      const credential = GoogleAuthProvider.credential(googleIdToken);
+      const userCredential = await signInWithCredential(auth, credential);
+
+      // Lấy Firebase ID Token
+      const firebaseIdToken = await userCredential.user.getIdToken();
+
+      console.log(`${process.env.NEXT_PUBLIC_API_URL}/user/login-google`);
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/user/login-google`,
+        {
+          googleIdToken: firebaseIdToken,
+        }
+      );
+      const receivedToken = res.data.idToken;
+      //console.log(`token: ${receivedToken}`);
+      localStorage.setItem("token", receivedToken);
+      setToken(receivedToken);
+
+      axios.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${receivedToken}`;
+      fetchProfile();
+      router.push("../profile");
+    } catch (error) {
+      console.error("Login error:", error);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -117,7 +153,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, updateUser }}>
+    <AuthContext.Provider
+      value={{ user, token, login, logout, updateUser, loginWithGoogle }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -29,6 +29,7 @@ export class UserService {
 
   // Đăng nhập bằng Google
   async loginWithGoogle(googleIdToken: string) {
+    console.log(`backend google token: ${googleIdToken}`);
     try {
       // Xác thực Google ID Token với Firebase
       const decodedToken = await firebaseAdmin
@@ -49,14 +50,10 @@ export class UserService {
         });
       }
 
-      // Tạo Firebase custom token để đăng nhập
-      const customToken = await firebaseAdmin
-        .auth()
-        .createCustomToken(userRecord.uid);
-
+      // Không tạo custom token nữa, chỉ trả về ID token và thông tin người dùng
       return {
         message: 'Login successful',
-        customToken,
+        idToken: googleIdToken, // Sử dụng Google ID Token đã xác minh
         user: {
           email: userRecord.email,
           displayName: userRecord.displayName,

@@ -34,6 +34,13 @@ export class UserController {
     return this.userService.loginUser(loginDto);
   }
 
+  // Endpoint để login bằng Google
+  @Post('login-google')
+  loginWithGoogle(@Body('googleIdToken') googleIdToken: string) {
+    // Gọi service để xử lý login với Google ID Token
+    return this.userService.loginWithGoogle(googleIdToken);
+  }
+
   @Post('refresh-auth')
   refreshAuth(@Query('refreshToken') refreshToken: string) {
     return this.userService.refreshAuthToken(refreshToken);

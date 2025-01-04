@@ -5,10 +5,12 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
+import GoogleIcon from "@mui/icons-material/Google"; // Import Google Icon
+import { GoogleLogin } from "@react-oauth/google"; // Import từ gói mới
 
 export default function Login() {
   const router = useRouter();
-  const { login } = useAuth(); // Get the login function from the context
+  const { login, loginWithGoogle } = useAuth(); // Get the login function from the context
 
   const {
     register,
@@ -29,6 +31,20 @@ export default function Login() {
   };
 
   const password = watch("password");
+
+  // Xử lý login với Google
+  const handleGoogleLogin = async (response) => {
+    try {
+      // Gửi token Google tới server để xác thực
+      const googleToken = response?.credential;
+      console.log(`google token: `, googleToken);
+      await loginWithGoogle(googleToken); // Gọi API để xử lý đăng nhập
+      toast.success("Login successful!");
+    } catch (error) {
+      console.error("Google login failed:", error);
+      toast.error("Failed to login with Google.");
+    }
+  };
 
   return (
     <Box
@@ -83,8 +99,14 @@ export default function Login() {
       />
 
       <Button variant="contained" color="primary" type="submit" fullWidth>
-        Submit
+        Log In
       </Button>
+
+      {/* Google Login Button */}
+      <GoogleLogin
+        onSuccess={handleGoogleLogin} // Hàm callback khi đăng nhập thành công
+        onError={() => toast.error("Google login failed")} // Xử lý lỗi khi đăng nhập thất bại
+      />
 
       <ToastContainer
         position="top-center"

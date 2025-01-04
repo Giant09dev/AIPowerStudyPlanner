@@ -4,6 +4,7 @@ import "./globals.css";
 import ContentLayout from "@/app/layouts/ContentLayout";
 import "bootstrap/dist/css/bootstrap.min.css";
 import AddBootstrap from "./addBootstrap";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,7 +28,11 @@ export default function RootLayout({ children }) {
       <html lang="en">
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
           <AddBootstrap />
-          <ContentLayout>{children}</ContentLayout>
+          <ContentLayout>
+            <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_CLIENT_ID}>
+              {children}
+            </GoogleOAuthProvider>
+          </ContentLayout>
         </body>
       </html>
     </AuthProvider>
