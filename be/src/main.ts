@@ -19,12 +19,12 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  //firebase ;
-  const firebaseKeyFilePath =
-    './user-authentication-94ddb-firebase-adminsdk-fym5l-92e09dab17.json';
-  const firebaseServiceAccount /*: ServiceAccount*/ = JSON.parse(
-    fs.readFileSync(firebaseKeyFilePath).toString(),
-  );
+  // //firebase ;
+  // const firebaseKeyFilePath =
+  //   './user-authentication-94ddb-firebase-adminsdk-fym5l-92e09dab17.json';
+  // const firebaseServiceAccount /*: ServiceAccount*/ = JSON.parse(
+  //   fs.readFileSync(firebaseKeyFilePath).toString(),
+  // );
   if (firebaseAdmin.apps.length === 0) {
     console.log('Initialize Firebase Application.');
     firebaseAdmin.initializeApp({
