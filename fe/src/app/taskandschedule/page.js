@@ -252,13 +252,13 @@ const FullCalendarView = () => {
   const handleEditTask = async (eventTask) => {
     if (selectedTask) {
       try {
-        console.log(`haha: `, selectedTask);
+        console.log(`selected task: `, selectedTask);
         const updatedTask = {
           ...selectedTask,
           taskName,
           description,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
+          startDate,
+          endDate,
           priority,
           status, // Include status in the updated task
         };
@@ -297,8 +297,8 @@ const FullCalendarView = () => {
           ...eventTask,
           taskName: eventTask.taskName,
           description: eventTask.description,
-          startDate: `${eventTask.startDate.toISOString()}`,
-          endDate: `${eventTask.endDate.toISOString()}`,
+          startDate: eventTask.startDate.toISOString(),
+          endDate: eventTask.endDate.toISOString(),
           priority: eventTask.priority,
           status: eventTask.status, // Include status in the updated task
         };
@@ -522,11 +522,19 @@ const FullCalendarView = () => {
     console.log(`transformed task: `, updatedTask);
 
     // Lấy thời gian hiện tại
-    const now = new Date().toISOString();
+    const now = new Date();
+    const startDate = new Date(updatedTask.startDate);
+    const endDate = new Date(updatedTask.endDate);
     // Nếu thời gian start của task ở quá khứ, đổi trạng thái thành "Expired"
-    if (new Date(updatedTask.startDate).toISOString() < now) {
+    console.log(`now: `, now.getDate());
+    console.log(`startDate: `, startDate.getDate());
+    if (startDate.getDate() < now.getDate()) {
       updatedTask.status = "Expired";
       console.log(`update transformed task: `, updatedTask);
+    } else if (startDate.getDate() > now.getDate()) {
+      updatedTask.status = "Todo";
+    } else if (startDate.getDate() === now.getDate()) {
+      updatedTask.status = "In Progress";
     }
 
     handleEditTask(updatedTask);
