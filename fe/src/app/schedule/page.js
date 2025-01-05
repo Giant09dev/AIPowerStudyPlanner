@@ -11,8 +11,8 @@ import axios from "axios";
 
 const EventModal = ({ isOpen, event, onClose, onSave, onDelete }) => {
   if (!isOpen) return null;
-  const startDate = new Date(event.startStr);
-  const endDate = new Date(event.endStr);
+  const startDate = new Date(event.start);
+  const endDate = new Date(event.end);
   const isAllDayEvent =
     event.startStr.split("T")[0] === event.endStr.split("T")[0] &&
     startDate.getHours() === 0 &&
@@ -45,10 +45,10 @@ const EventModal = ({ isOpen, event, onClose, onSave, onDelete }) => {
           <strong>Priority:</strong> {event.extendedProps.priority}
         </p>
         <p>
-          <strong>Start:</strong> {startDate.toLocaleString()}
+          <strong>Start:</strong> {startDate}
         </p>
         <p>
-          <strong>End:</strong> {endDate.toLocaleString()}
+          <strong>End:</strong> {endDate}
         </p>
 
         <p>Choose an action:</p>
@@ -130,10 +130,12 @@ const apiData = [
 ];
 
 const FullCalendarView = () => {
+  //calendar
   const { token } = useAuth();
   const [events, setEvents] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  //task
 
   // Hàm lấy dữ liệu sự kiện từ API
   const fetchEvents = async () => {
