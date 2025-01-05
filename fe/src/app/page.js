@@ -1,10 +1,13 @@
 "use client";
+import { useState, useEffect } from "react";
 
 import { Button, Typography, Box } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
+import { setupAxiosInterceptor } from "@/app/utils/checkTokenExpiry";
 
 export default function Home() {
+  setupAxiosInterceptor();
   const router = useRouter();
   const { user, logout } = useAuth(); // Access user and logout function
 

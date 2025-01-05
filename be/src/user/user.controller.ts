@@ -42,7 +42,7 @@ export class UserController {
   }
 
   @Post('refresh-auth')
-  refreshAuth(@Query('refreshToken') refreshToken: string) {
+  refreshAuth(@Body('refreshToken') refreshToken: string) {
     return this.userService.refreshAuthToken(refreshToken);
   }
 

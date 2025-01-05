@@ -138,6 +138,7 @@ export class UserService {
 
   //refresh auth token
   async refreshAuthToken(refreshToken: string) {
+    // console.log(`refresh token: `, refreshToken);
     try {
       const {
         id_token: idToken,

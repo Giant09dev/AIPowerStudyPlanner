@@ -76,7 +76,7 @@ export default function Profile() {
 
       {/* Avatar */}
       <Avatar
-        src={user?.photoURL || "/default-avatar.png"}
+        src={user?.photoURL || "/default_user.png"}
         alt="Avatar"
         sx={{ width: 80, height: 80, marginBottom: 2 }}
       />

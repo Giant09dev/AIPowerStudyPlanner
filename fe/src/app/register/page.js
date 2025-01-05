@@ -4,9 +4,11 @@ import { TextField, Button, Typography, Box } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/context/AuthContext";
 
 export default function Register() {
   const router = useRouter();
+  const { login } = useAuth();
   const {
     register,
     handleSubmit,
@@ -29,7 +31,15 @@ export default function Register() {
 
       if (response.ok) {
         toast.success("Registration successful!");
-        router.push("../login"); // Redirect to login page after successful registration
+        try {
+          await login(data.email, data.password); // Use login function from useAuth to authenticate
+          toast.success("Login successful!");
+          router.push("../profile"); // Redirect to profile page
+        } catch (error) {
+          console.error("Login error:", error);
+          toast.error("Login failed. Please check your credentials.");
+          router.push("../login"); // Redirect to profile page
+        }
       } else {
         const errorResult = await response.json();
         toast.error(errorResult.message || "Registration failed.");

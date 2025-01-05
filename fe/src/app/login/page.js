@@ -102,6 +102,17 @@ export default function Login() {
         Log In
       </Button>
 
+      {/* Register Button */}
+      <Button
+        variant="outlined"
+        color="secondary"
+        onClick={() => router.push("/register")} // Navigate to the registration page
+        fullWidth
+        sx={{ marginTop: 2 }}
+      >
+        Register
+      </Button>
+
       {/* Google Login Button */}
       <GoogleLogin
         onSuccess={handleGoogleLogin} // Hàm callback khi đăng nhập thành công
