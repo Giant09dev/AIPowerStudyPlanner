@@ -25,13 +25,13 @@ import "@/app/style/task_schedule.css";
 
 const EventModal = ({ isOpen, event, onClose, onSave, onDelete }) => {
   if (!isOpen) return null;
-  console.log(`old start: `, event.start);
-  console.log(`old end: `, event.end);
+  // console.log(`old start: `, event.start);
+  // console.log(`old end: `, event.end);
   const startDate = new Date(event.start);
   const endDate = new Date(event.end);
 
-  console.log(`start: `, startDate);
-  console.log(`end: `, endDate);
+  // console.log(`start: `, startDate);
+  // console.log(`end: `, endDate);
   const isAllDayEvent =
     event.startStr.split("T")[0] === event.endStr.split("T")[0] &&
     startDate.getHours() === 0 &&
@@ -40,7 +40,7 @@ const EventModal = ({ isOpen, event, onClose, onSave, onDelete }) => {
     endDate.getHours() === 23 &&
     endDate.getMinutes() === 59 &&
     endDate.getSeconds() === 59;
-  console.log(`isOpen: ${isOpen}`);
+  // console.log(`isOpen: ${isOpen}`);
   return (
     <Modal show={isOpen} onHide={onClose}>
       <Modal.Header closeButton>
@@ -126,6 +126,7 @@ const FullCalendarView = () => {
   const [endDate, setEndDate] = useState(null);
   const [priority, setPriority] = useState("");
   const [status, setStatus] = useState(""); // State for status
+  const [triggerEffect, setTriggerEffect] = useState(false);
 
   const router = useRouter();
 
@@ -158,22 +159,24 @@ const FullCalendarView = () => {
   useEffect(() => {
     if (token) {
       updateTasks(); // Run on initial render
-      updateEvents();
     }
   }, [token, searchTerm, priorityFilter, statusFilter, sortBy, sortOrder]);
   useEffect(() => {
-    console.log(`Updated events: ${JSON.stringify(events)}`); // Kiểm tra state sau khi thay đổi
+    if (token && events) {
+      console.log(`Updated events: ${JSON.stringify(events)}`); // Kiểm tra state sau khi thay đổi
+    }
   }, [events]); // Lắng nghe sự thay đổi của `events`
   useEffect(() => {
     if (token) {
       updateEvents();
     }
   }, [tasks]); // Lắng nghe sự thay đổi của `events`
-  // useEffect(() => {
-  //   if (token) {
-  //     updateTasks();
-  //   }
-  // }, [events]); // Lắng nghe sự thay đổi của `events`
+  useEffect(() => {
+    if (token && triggerEffect) {
+      updateTasks();
+      setTriggerEffect(false);
+    }
+  }, [triggerEffect]); // Lắng nghe sự thay đổi của `events`
 
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
@@ -246,9 +249,10 @@ const FullCalendarView = () => {
     setSelectedTask(null);
   };
 
-  const handleEditTask = async () => {
+  const handleEditTask = async (eventTask) => {
     if (selectedTask) {
       try {
+        console.log(`haha: `, selectedTask);
         const updatedTask = {
           ...selectedTask,
           taskName,
@@ -258,6 +262,7 @@ const FullCalendarView = () => {
           priority,
           status, // Include status in the updated task
         };
+        console.log(`huhu: `, updatedTask);
 
         await axios.patch(
           `${process.env.NEXT_PUBLIC_API_URL}/tasks/${selectedTask._id}`,
@@ -282,7 +287,46 @@ const FullCalendarView = () => {
       } catch (error) {
         console.error("Error updating task:", error);
       }
+    } else {
+      console.log(`khong co selected task`);
+      try {
+        console.log(`haha: `, eventTask);
+        console.log(`startDate: `, eventTask.startDate.toISOString());
+        console.log(`endDate: `, eventTask.endDate);
+        const updatedTask = {
+          ...eventTask,
+          taskName: eventTask.taskName,
+          description: eventTask.description,
+          startDate: `${eventTask.startDate.toISOString()}`,
+          endDate: `${eventTask.endDate.toISOString()}`,
+          priority: eventTask.priority,
+          status: eventTask.status, // Include status in the updated task
+        };
+        console.log(`huhu: `, updatedTask);
+
+        await axios.patch(
+          `${process.env.NEXT_PUBLIC_API_URL}/tasks/${eventTask._id}`,
+          updatedTask,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        setTasks(
+          tasks.map((task) => (task._id === eventTask._id ? eventTask : task))
+        );
+        setFilteredTasks(
+          filteredTasks.map((task) =>
+            task._id === eventTask._id ? eventTask : task
+          )
+        );
+
+        handleCloseModal();
+      } catch (error) {
+        console.error("Error updating task:", error);
+      }
     }
+    setTriggerEffect(true);
   };
 
   const handleAddTask = async () => {
@@ -360,7 +404,6 @@ const FullCalendarView = () => {
         }
       ); // Gọi API
       const data = response.data.map(transformEventData);
-      console.log(`data1: `, data);
       setEvents(data); // Cập nhật dữ liệu sự kiện vào state
     } catch (error) {
       console.error("Error fetching events:", error);
@@ -384,11 +427,12 @@ const FullCalendarView = () => {
     return {
       _id: data.id, // ID của sự kiện
       taskName: data.title, // Tiêu đề sự kiện
-      startDate: data.start, // Chuyển startDate thành ISO String
-      endDate: data.end, // Chuyển endDate thành ISO String
+      startDate: new Date(data.start), // Chuyển startDate thành ISO String
+      endDate: new Date(data.end), // Chuyển endDate thành ISO String
       description: data.extendedProps.description, // Mô tả sự kiện
       priority: data.extendedProps.priority, // Mức độ ưu tiên
       status: data.extendedProps.status,
+      uid: data.extendedProps.uid,
       // allDay: allDay,
     };
   };
@@ -455,8 +499,8 @@ const FullCalendarView = () => {
     setIsModalOpen(true);
   };
 
-  const handleEventDrop = (info) => {
-    console.log(info); // Kiểm tra xem có dữ liệu sự kiện không
+  const handleEventDropAndResize = (info) => {
+    console.log(`co chay drop`);
     const updatedEvents = events.map((event) =>
       event.id === info.event.id
         ? {
@@ -473,25 +517,19 @@ const FullCalendarView = () => {
           }
         : event
     );
-    console.log(`haha`);
     setEvents(updatedEvents);
-  };
-
-  const handleEventResize = (info) => {
-    const updatedEvents = events.map((event) =>
-      event.id === info.event.id
-        ? {
-            ...event,
-            start: info.event.start,
-            end: info.event.end,
-            allDay: info.event.allDay,
-          }
-        : event
-    );
-    setEvents(updatedEvents);
-
     const updatedTask = transformEventToTask(info.event);
     console.log(`transformed task: `, updatedTask);
+
+    // Lấy thời gian hiện tại
+    const now = new Date().toISOString();
+    // Nếu thời gian start của task ở quá khứ, đổi trạng thái thành "Expired"
+    if (new Date(updatedTask.startDate).toISOString() < now) {
+      updatedTask.status = "Expired";
+      console.log(`update transformed task: `, updatedTask);
+    }
+
+    handleEditTask(updatedTask);
   };
 
   return (
@@ -509,8 +547,8 @@ const FullCalendarView = () => {
             timeZone="local"
             select={handleDateSelect}
             eventClick={handleEventClick}
-            eventDrop={handleEventDrop}
-            eventResize={handleEventResize}
+            eventDrop={handleEventDropAndResize}
+            eventResize={handleEventDropAndResize}
             headerToolbar={{
               left: "prev,next today",
               center: "title",
@@ -810,7 +848,7 @@ const FullCalendarView = () => {
                           value={status} // Bind the input to status state
                           onChange={(e) => setStatus(e.target.value)} // Update status when edited
                         >
-                          <option value="Open">Open</option>
+                          <option value="Todo">Todo</option>
                           <option value="In Progress">In Progress</option>
                           <option value="Completed">Completed</option>
                           <option value="Expired">Expired</option>

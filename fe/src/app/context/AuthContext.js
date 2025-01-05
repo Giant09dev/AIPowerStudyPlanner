@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
       axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
     }
     if (token) {
-      console.log(`token: `, token);
+      // console.log(`token: `, token);
       fetchProfile();
     }
   }, [token]);
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log("res.data:", res.data);
+      // console.log("res.data:", res.data);
       setUser((prev) => ({
         ...prev,
         ...res.data, // Cập nhật dữ liệu user state
@@ -131,7 +131,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateUser = async (updatedData) => {
     try {
-      console.log("Update data:", updatedData);
+      // console.log("Update data:", updatedData);
       const res = await axios.patch(
         `${process.env.NEXT_PUBLIC_API_URL}/user/profile/update`, // API Endpoint
         updatedData, // Data cần cập nhật
@@ -140,7 +140,7 @@ export const AuthProvider = ({ children }) => {
         }
       );
 
-      console.log("Update response:", res);
+      // console.log("Update response:", res);
       setUser((prev) => ({
         ...prev,
         ...res.data, // Cập nhật dữ liệu user state
