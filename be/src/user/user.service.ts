@@ -249,7 +249,13 @@ export class UserService {
       // Cập nhật người dùng trong Firebase bằng UID
       await firebaseAdmin.auth().updateUser(uid, updatePayload);
 
-      return { message: 'User updated successfully' };
+      const newProfile = this.getProfile(req);
+
+      return {
+        message: 'User updated successfully',
+        username: (await newProfile).username,
+        photoURL: (await newProfile).photoURL,
+      };
     } catch (error) {
       throw new Error(`Error updating user: ${error.message}`);
     }

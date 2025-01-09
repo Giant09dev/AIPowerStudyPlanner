@@ -76,21 +76,32 @@ export const AuthProvider = ({ children }) => {
           password,
         }
       );
-      const receivedToken = res.data.idToken;
-      const receivedRefreshToken = res.data.refreshToken;
-      storeRefreshToken(receivedRefreshToken);
-      console.log(`token: ${receivedToken}`);
-      console.log(`refreshToken: ${receivedRefreshToken}`);
-      localStorage.setItem("token", receivedToken);
-      setToken(receivedToken);
-      refreshToken();
+      // Kiểm tra nếu server trả về token thì mới tiếp tục
+      if (res.data && res.data.idToken) {
+        const receivedToken = res.data.idToken;
+        const receivedRefreshToken = res.data.refreshToken;
 
-      axios.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${receivedToken}`;
-      router.push("../profile");
+        storeRefreshToken(receivedRefreshToken);
+        // console.log(`token: ${receivedToken}`);
+        // console.log(`refreshToken: ${receivedRefreshToken}`);
+
+        localStorage.setItem("token", receivedToken);
+        setToken(receivedToken);
+        refreshToken();
+
+        axios.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${receivedToken}`;
+
+        // Chuyển đến trang profile sau khi đăng nhập thành công
+        return true;
+      } else {
+        console.error("Invalid login response: Missing token");
+        throw new Error("Login failed: Invalid response from server.");
+      }
     } catch (error) {
       console.error("Login error:", error);
+      throw error; // Ném lỗi để onSubmit xử lý
     }
   };
 
@@ -109,17 +120,23 @@ export const AuthProvider = ({ children }) => {
           googleIdToken: firebaseIdToken,
         }
       );
-      const receivedToken = res.data.idToken;
-      //console.log(`token: ${receivedToken}`);
-      localStorage.setItem("token", receivedToken);
-      setToken(receivedToken);
+      if (res.data && res.data.idToken) {
+        const receivedToken = res.data.idToken;
+        //console.log(`token: ${receivedToken}`);
+        localStorage.setItem("token", receivedToken);
+        setToken(receivedToken);
 
-      axios.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${receivedToken}`;
-      router.push("../profile");
+        axios.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${receivedToken}`;
+        router.push("../profile");
+      } else {
+        console.error("Invalid login response: Missing token");
+        throw new Error("Login failed: Invalid response from server.");
+      }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("LoginWithGoogle error:", error);
+      throw error; // Ném lỗi để onSubmit xử lý
     }
   };
 
@@ -144,11 +161,13 @@ export const AuthProvider = ({ children }) => {
         }
       );
 
-      // console.log("Update response:", res);
+      // console.log("Update user response:", res.data);
       setUser((prev) => ({
         ...prev,
-        ...res.data, // Cập nhật dữ liệu user state
+        username: res.data.username, // Cập nhật dữ liệu user state
+        photoURL: res.data.photoURL, // Cập nhật dữ liệu user state
       }));
+      // console.log("New user profile", user);
     } catch (error) {
       console.error("Update user error:", error);
     }

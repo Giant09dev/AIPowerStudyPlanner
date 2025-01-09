@@ -23,7 +23,7 @@ export default function Login() {
     try {
       await login(data.email, data.password); // Use login function from useAuth to authenticate
       toast.success("Login successful!");
-      router.push("../profile"); // Redirect to profile page
+      router.push("../profile");
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Login failed. Please check your credentials.");
@@ -37,7 +37,7 @@ export default function Login() {
     try {
       // Gửi token Google tới server để xác thực
       const googleToken = response?.credential;
-      console.log(`google token: `, googleToken);
+      // console.log(`google token: `, googleToken);
       await loginWithGoogle(googleToken); // Gọi API để xử lý đăng nhập
       toast.success("Login successful!");
     } catch (error) {
